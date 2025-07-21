@@ -177,22 +177,40 @@
       return generateNormalCommand();
     }
 
-    function roll() {
-      const paper = document.getElementById("command");
-      if (isShowing) {
-        paper.classList.remove("show");
-        paper.classList.add("hide");
-        setTimeout(() => {
-          const cmd = generateCommand();
-          paper.innerText = insertLineBreaks(cmd, 26);
-          paper.classList.remove("hide");
-          paper.classList.add("show");
-        }, 800);
-      } else {
-        const cmd = generateCommand();
-        paper.innerText = insertLineBreaks(cmd, 26);
+  function roll() {
+    // 9% 확률로 이스터에그
+    const isEasterEgg = Math.random() < 0.09;
+
+    if (isShowing) {
+      paper.classList.remove("show");
+      paper.classList.add("hide");
+      setTimeout(() => {
+        if (isEasterEgg) {
+          // 이스터에그 활성화
+          paper.style.background = 'url("images/easter_egg_paper.png") no-repeat center/contain';
+          paper.innerText = "이스터에그를 찾으셨습니다";
+          isEasterEggActive = true;
+        } else {
+          // 일반 상태
+          paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+          paper.innerText = insertLineBreaks(generateCommand(), 26);
+          isEasterEggActive = false;
+        }
+        paper.classList.remove("hide");
         paper.classList.add("show");
-        isShowing = true;
+      }, 800);
+    } else {
+      if (isEasterEgg) {
+        paper.style.background = 'url("images/easter_egg_paper.png") no-repeat center/contain';
+        paper.innerText = "wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek ";
+        isEasterEggActive = true;
+      } else {
+        paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+        paper.innerText = insertLineBreaks(generateCommand(), 26);
+        isEasterEggActive = false;
+      }
+      paper.classList.add("show");
+      isShowing = true;
       }
     }
   </script>
