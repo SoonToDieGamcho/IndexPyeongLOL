@@ -12,54 +12,71 @@
       color: #fff;
       font-family: "Nanum Myeongjo", serif;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       margin: 0;
       overflow: hidden;
     }
+
+        .wrapper {
+      width: 800px;
+      height: 600px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
     .paper {
       background: url("images/paper.png") no-repeat center/contain;
       width: 600px;
       height: 150px;
+      font-size: 24px; /* px 단위 */
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+      white-space: pre-wrap;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-align: center;
-      position: absolute;
-      top: -300px;
+      transform: translateY(-300px);
       opacity: 0;
-      transition: top 0.8s ease-out, opacity 0.8s ease-out;
-      color: #000;
-      white-space: pre-wrap; /* 줄바꿈 적용을 위해 추가 */
+      transition: transform 0.8s ease-out, opacity 0.8s ease-out;
     }
+
     .paper.show {
-      top: 250px;
+      transform: translateY(0);
       opacity: 1;
     }
+
     .paper.hide {
-      top: -300px;
+      transform: translateY(-300px);
       opacity: 0;
     }
+
     .button {
       background: url("images/button.png") no-repeat center/contain;
       width: 400px;
       height: 160px;
       border: none;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 40px;
     }
+
     .button:active {
       transform: scale(0.95);
     }
   </style>
 </head>
 <body>
-  <div class="paper" id="command"></div>
-  <button class="button" onclick="roll()"></button>
+  <div class="wrapper">
+    <div class="paper" id="command"></div>
+    <button class="button" onclick="roll()"></button>
+  </div>
+</body>
 
   <script>
     const objects = ["달빛", "바람", "종이비행기", "돌멩이", "바나나", "양말", "심장", "손", "팔", "신체 부위", "집", "머리카락", "시체", "필기도구", "실", "거실", "친구", "무기", "혈연 가족", "이동 수단", "해결사", "자판기", "광기", "감정", "죽음", "주사기", "나무", "자동차", "바닥재", "음식", "종이", "지령", "스스로", "섕크 협회", "부랑자", "눈물", "그림", "피", "혈액", "쇠붙이", "기계", "옷", "칼", "못", "무작위 신체부위", "전투원"];
