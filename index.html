@@ -96,122 +96,130 @@
     const timeVerbs = ["일어난다", "운동한다", "공부한다", "씻는다", "식사한다", "출발한다", "시간을 기록한다", "도망친다", "숨는다", "울부짖는다", "춤춘다", "기도한다", "혼잣말을 한다", "사람을 습격한다", "죄를 짓는다(중할수록 좋다)", "친구와 만난다", "노래한다", "숨쉰다", "조용히 숨쉰다", "모든 행동을 멈춘다", "무작위 신체부위를 상처낸다", "전투한다", "숨는다"];
 
       const paper = document.getElementById("command");
-    let isShowing = false;
-    let isEasterEggActive = false;
+  let isShowing = false;
 
-    function maybe(item, chance = 0.7) {
-      return Math.random() < chance ? item : "";
+  // 이스터에그 데이터 배열
+  const easterEggs = [
+    {
+      image: 'images/easter_egg_paper1.png',
+      text: 'wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek'
+    },
+    {
+      image: 'images/easter_egg_paper2.png',
+      text: '지금 당장 버거를 뿌린다'
+    }
+  ];
+
+  function maybe(item, chance = 0.7) {
+    return Math.random() < chance ? item : "";
+  }
+
+  function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function getParticle(word, type = "object") {
+    word = word.trim();
+    if (type === "location") return word + "에서";
+    const lastChar = word[word.length - 1];
+    const uni = lastChar.charCodeAt(0);
+    const isBatchim = (uni - 0xAC00) % 28 !== 0;
+    return word + (type === "with" ? (isBatchim ? "과" : "와") : (isBatchim ? "을" : "를"));
+  }
+
+  function insertLineBreaks(text, maxLength = 26) {
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+      result += text[i];
+      if ((i + 1) % maxLength === 0) result += "\n";
+    }
+    return result;
+  }
+
+  function generateTimeCommand() {
+    const time = random(timeNouns);
+    const verb = random(timeVerbs);
+    return `${time}에 ${verb}`;
+  }
+
+  function generateNormalCommand() {
+    const omitModifiers = Math.random() < 0.15;
+    const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.7);
+
+    const isLocation = Math.random() < 0.23;
+    let objectCore, fullObject, particleType;
+
+    if (isLocation) {
+      objectCore = random(locationNouns);
+      fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
+      particleType = "location";
+    } else {
+      const useSpecialObject = !objectModifier;
+      const nounSource = useSpecialObject ? specialObjects : objects;
+      objectCore = random(nounSource);
+      fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
+      particleType = Math.random() < 0.5 ? "with" : "object";
     }
 
-    function random(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
+    const objectWithParticle = getParticle(fullObject.trim(), particleType);
+    const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.65);
+
+    let verb = "";
+    if (particleType === "location") {
+      verb = random(locationVerbs);
+    } else if (particleType === "with") {
+      verb = random(withVerbs);
+    } else {
+      verb = adverb ? random(verbs) : random(specialVerbs);
     }
 
-    function getParticle(word, type = "object") {
-      word = word.trim();
-      if (type === "location") return word + "에서";
-      const lastChar = word[word.length - 1];
-      const uni = lastChar.charCodeAt(0);
-      const isBatchim = (uni - 0xAC00) % 28 !== 0;
-      return word + (type === "with" ? (isBatchim ? "과" : "와") : (isBatchim ? "을" : "를"));
+    const parts = [objectWithParticle];
+    if (adverb) parts.push(adverb);
+    if (verb) parts.push(verb);
+
+    return parts.join(" ");
+  }
+
+  function generateCommand() {
+    if (Math.random() < 0.15) {
+      return generateTimeCommand();
     }
+    return generateNormalCommand();
+  }
 
-    function insertLineBreaks(text, maxLength = 26) {
-      let result = "";
-      for (let i = 0; i < text.length; i++) {
-        result += text[i];
-        if ((i + 1) % maxLength === 0) result += "\n";
-      }
-      return result;
-    }
+  function roll() {
+    const isEasterEgg = Math.random() < 0.09; // 9% 확률
 
-    function generateTimeCommand() {
-      const time = random(timeNouns);
-      const verb = random(timeVerbs);
-      return `${time}에 ${verb}`;
-    }
-
-    function generateNormalCommand() {
-      const omitModifiers = Math.random() < 0.15;
-      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.7);
-
-      const isLocation = Math.random() < 0.23;
-      let objectCore, fullObject, particleType;
-
-      if (isLocation) {
-        objectCore = random(locationNouns);
-        fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
-        particleType = "location";
-      } else {
-        const useSpecialObject = !objectModifier;
-        const nounSource = useSpecialObject ? specialObjects : objects;
-        objectCore = random(nounSource);
-        fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
-        particleType = Math.random() < 0.5 ? "with" : "object";
-      }
-
-      const objectWithParticle = getParticle(fullObject.trim(), particleType);
-      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.65);
-
-      let verb = "";
-      if (particleType === "location") {
-        verb = random(locationVerbs);
-      } else if (particleType === "with") {
-        verb = random(withVerbs);
-      } else {
-        verb = adverb ? random(verbs) : random(specialVerbs);
-      }
-
-      const parts = [objectWithParticle];
-      if (adverb) parts.push(adverb);
-      if (verb) parts.push(verb);
-
-      return parts.join(" ");
-    }
-
-    function generateCommand() {
-      if (Math.random() < 0.15) {
-        return generateTimeCommand();
-      }
-      return generateNormalCommand();
-    }
-
-    function roll() {
-      // 9% 확률로 이스터에그
-      const isEasterEgg = Math.random() < 0.07;
-
-      if (isShowing) {
-        paper.classList.remove("show");
-        paper.classList.add("hide");
-        setTimeout(() => {
-          if (isEasterEgg) {
-            // 이스터에그 활성화
-            paper.style.background = 'url("images/easter_egg_paper.png") no-repeat center/contain';
-            paper.innerText = "wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek";
-            isEasterEggActive = true;
-          } else {
-            // 일반 상태
-            paper.style.background = 'url("images/paper.png") no-repeat center/contain';
-            paper.innerText = insertLineBreaks(generateCommand(), 26);
-            isEasterEggActive = false;
-          }
-          paper.classList.remove("hide");
-          paper.classList.add("show");
-        }, 800);
-      } else {
+    if (isShowing) {
+      paper.classList.remove("show");
+      paper.classList.add("hide");
+      setTimeout(() => {
         if (isEasterEgg) {
-          paper.style.background = 'url("images/easter_egg_paper.png") no-repeat center/contain';
-          paper.innerText = "wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek";
-          isEasterEggActive = true;
+          // 이스터에그 랜덤 선택
+          const egg = random(easterEggs);
+          paper.style.background = `url("${egg.image}") no-repeat center/contain`;
+          paper.innerText = egg.text;
         } else {
+          // 일반 명령어
           paper.style.background = 'url("images/paper.png") no-repeat center/contain';
           paper.innerText = insertLineBreaks(generateCommand(), 26);
-          isEasterEggActive = false;
         }
+        paper.classList.remove("hide");
         paper.classList.add("show");
-        isShowing = true;
+      }, 800);
+    } else {
+      if (isEasterEgg) {
+        const egg = random(easterEggs);
+        paper.style.background = `url("${egg.image}") no-repeat center/contain`;
+        paper.innerText = egg.text;
+      } else {
+        paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+        paper.innerText = insertLineBreaks(generateCommand(), 26);
       }
+      paper.classList.add("show");
+      isShowing = true;
     }
- </script>
+  }
+</script>
 </body>
 </html>
