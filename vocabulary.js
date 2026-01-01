@@ -93,7 +93,8 @@ const countSuffixes = ["이상", "이하"];
 
 // 17. 이스터에그 데이터
 const easterEggs = [
-  { image: 'images/easter_egg_paper1.png', text: 'wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek' },
+  { image: 'images/easter_egg_paper1.png', text: 'wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek' },
   { image: 'images/easter_egg_paper2.png', text: '지금 당장 버거를 뿌린다' },
+  { image: 'images/easter_egg_paper1.png', text: '가짜 지령을 작성해 전달한다' },
   { image: 'images/easter_egg_paper3.png', text: '지령을 수행하지 않은 자를 찾아 처벌한다' }
 ];
