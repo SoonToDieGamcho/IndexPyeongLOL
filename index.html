@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>지령 생성기</title>
+  
+  <link rel="icon" href="images/fv.png" type="image/png">
+  
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -121,7 +124,6 @@
     }
 
     // --- 패턴별 생성 로직 ---
-
     function generateTimeCommand() {
       return `${random(timeNouns)}에 ${random(timeVerbs)}`;
     }
@@ -139,11 +141,9 @@
       const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
       const nounSource = !objectModifier ? specialObjects : objects;
       const objectWithParticle = getParticle(random(nounSource).trim(), Math.random() < 0.5 ? "with" : "object");
-      
       const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
       const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
 
-      // [순서 변경] 부사(adverb)가 횟수(freqPhrase)보다 앞에 오도록 배치
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) ? random(withVerbs) : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
       return [preMod, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
@@ -151,10 +151,8 @@
     function generateSimpleCommand() {
       const preMod = maybe(random(preModifiers), 0.25);
       const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
-      const adverb = random(adverbs); // 100% 확률
+      const adverb = random(adverbs);
       const verb = random(simpleVerbs);
-      
-      // [순서 변경] 부사가 횟수보다 앞에 오도록 배치
       return [preMod, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
@@ -164,7 +162,6 @@
     }
 
     // --- 메인 컨트롤 로직 ---
-
     function generateCommand() {
       const rand = Math.random();
       let cmd = "";
