@@ -6,14 +6,71 @@
   <title>지령 생성기</title>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet" />
   <style>
-    /* CSS 스타일은 이전과 동일하므로 생략합니다 (그대로 두시면 됩니다) */
-    body { background: #2c2c2c url("images/bg.png") no-repeat center center fixed; background-size: cover; color: #fff; font-family: "Nanum Myeongjo", serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-    .wrapper { width: 800px; height: 600px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-    .paper { background: url("images/paper.png") no-repeat center/contain; width: 410px; height: 100px; font-size: 12px; font-weight: bold; text-align: center; color: #000; white-space: pre-wrap; display: flex; align-items: center; justify-content: center; transform: translateY(-300px); opacity: 0; transition: transform 0.8s ease-out, opacity 0.8s ease-out; padding: 20px; box-sizing: border-box; }
-    .paper.show { transform: translateY(0); opacity: 1; }
-    .paper.hide { transform: translateY(-300px); opacity: 0; }
-    .button { background: url("images/button.png") no-repeat center/contain; width: 400px; height: 180px; border: none; cursor: pointer; margin-top: 40px; }
-    .button:active { transform: scale(0.95); }
+    body {
+      background: #2c2c2c url("images/bg.png") no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      font-family: "Nanum Myeongjo", serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      width: 800px;
+      height: 600px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .paper {
+      background: url("images/paper.png") no-repeat center/contain;
+      width: 410px;
+      height: 100px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+      white-space: pre-wrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(-300px);
+      opacity: 0;
+      transition: transform 0.8s ease-out, opacity 0.8s ease-out;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .paper.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .paper.hide {
+      transform: translateY(-300px);
+      opacity: 0;
+    }
+
+    .button {
+      background: url("images/button.png") no-repeat center/contain;
+      width: 400px;
+      height: 180px;
+      border: none;
+      cursor: pointer;
+      margin-top: 40px;
+    }
+
+    .button:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body>
@@ -28,6 +85,7 @@
     const paper = document.getElementById("command");
     let isShowing = false;
 
+    // --- 유틸리티 함수 ---
     function maybe(item, chance = 0.7) { return Math.random() < chance ? item : ""; }
     function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -54,12 +112,19 @@
         if (char === "\n") { currentLineLength = 0; } 
         else { currentLineLength++; }
         result += char;
-        if (currentLineLength >= maxLength) { result += "\n"; currentLineLength = 0; }
+        if (currentLineLength >= maxLength) {
+          result += "\n";
+          currentLineLength = 0;
+        }
       }
       return result;
     }
 
-    function generateTimeCommand() { return `${random(timeNouns)}에 ${random(timeVerbs)}`; }
+    // --- 패턴별 생성 로직 ---
+
+    function generateTimeCommand() {
+      return `${random(timeNouns)}에 ${random(timeVerbs)}`;
+    }
 
     function generateLocationCommand() {
       const modifier = maybe(random(objectModifiers), 0.35);
@@ -74,18 +139,23 @@
       const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
       const nounSource = !objectModifier ? specialObjects : objects;
       const objectWithParticle = getParticle(random(nounSource).trim(), Math.random() < 0.5 ? "with" : "object");
+      
       const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
       const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
+
+      // [순서 변경] 부사(adverb)가 횟수(freqPhrase)보다 앞에 오도록 배치
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) ? random(withVerbs) : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
-      return [preMod, objectWithParticle, freqPhrase, adverb, verb].filter(Boolean).join(" ");
+      return [preMod, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
     function generateSimpleCommand() {
       const preMod = maybe(random(preModifiers), 0.25);
       const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
-      const adverb = random(adverbs);
+      const adverb = random(adverbs); // 100% 확률
       const verb = random(simpleVerbs);
-      return [preMod, freqPhrase, adverb, verb].filter(Boolean).join(" ");
+      
+      // [순서 변경] 부사가 횟수보다 앞에 오도록 배치
+      return [preMod, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
     function addDuration(command, chance = 0.15) {
@@ -93,10 +163,16 @@
       return command;
     }
 
+    // --- 메인 컨트롤 로직 ---
+
     function generateCommand() {
       const rand = Math.random();
-      let cmd = (rand < 0.15) ? generateTimeCommand() : (rand < 0.30) ? generateLocationCommand() : (rand < 0.50) ? generateSimpleCommand() : generateUniversalCommand();
-      return (rand < 0.15) ? cmd : addDuration(cmd, 0.15);
+      let cmd = "";
+      if (rand < 0.15) return generateTimeCommand();
+      else if (rand < 0.30) cmd = generateLocationCommand();
+      else if (rand < 0.50) cmd = generateSimpleCommand();
+      else cmd = generateUniversalCommand();
+      return addDuration(cmd, 0.15); 
     }
 
     function roll() {
@@ -105,7 +181,11 @@
         paper.classList.remove("show");
         paper.classList.add("hide");
         setTimeout(() => { updatePaper(isEasterEgg); paper.classList.remove("hide"); paper.classList.add("show"); }, 800);
-      } else { updatePaper(isEasterEgg); paper.classList.add("show"); isShowing = true; }
+      } else {
+        updatePaper(isEasterEgg);
+        paper.classList.add("show");
+        isShowing = true;
+      }
     }
 
     function updatePaper(isEasterEgg) {
