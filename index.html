@@ -91,9 +91,21 @@
     // --- 유틸리티 함수 ---
     function maybe(item, chance = 0.7) { return Math.random() < chance ? item : ""; }
     function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function generateRandomCount() {
+      const r = Math.random();
+      let num;
+      if (r < 0.50) num = randomInt(1, 10);
+      else if (r < 0.80) num = randomInt(11, 100);
+      else if (r < 0.90) num = randomInt(101, 1000);
+      else if (r < 0.97) num = randomInt(1001, 10000);
+      else num = randomInt(10001, 10000000);
+      return num.toLocaleString() + "번";
+    }
 
     function getFrequencyPhrase() {
-      let phrase = random(actionCounts);
+      let phrase = generateRandomCount();
       if (Math.random() < 0.3) { phrase += " " + random(countSuffixes); }
       return phrase;
     }
@@ -124,30 +136,52 @@
     }
 
     // --- 패턴별 생성 로직 ---
+
+    // 패턴 A: 시간형
     function generateTimeCommand() {
       return `${random(timeNouns)}에 ${random(timeVerbs)}`;
     }
 
+    // 패턴 B: 장소형 (수정됨: 선행수식어 추가)
     function generateLocationCommand() {
-      const modifier = maybe(random(objectModifiers), 0.35);
+      const preMod = maybe(random(preModifiers), 0.25); // [추가] 선행수식어 25%
+      const modifier = maybe(random(locationModifiers), 0.35);
       const loc = random(locationNouns);
       const verb = random(locationVerbs);
-      return `${modifier} ${getParticle(loc, "location")} ${verb}`.trim();
+      
+      // 선행수식어 + 장소구문 결합
+      return [preMod, modifier, getParticle(loc, "location"), verb].filter(Boolean).join(" ");
     }
 
+    // 패턴 C: 범용 상호형 (수정됨: 장소 구문 삽입 추가)
     function generateUniversalCommand() {
-      const preMod = maybe(random(preModifiers), 0.2);
+      const preMod = maybe(random(preModifiers), 0.2); // 선행수식어
+      
+      // [추가] 장소 구문 생성 (25% 확률로 대상 앞에 '어디에서'가 붙음)
+      let locationPhrase = "";
+      if (Math.random() < 0.25) {
+        const locMod = maybe(random(locationModifiers), 0.35);
+        const locNoun = random(locationNouns);
+        locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
+      }
+
       const omitModifiers = Math.random() < 0.15;
       const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
       const nounSource = !objectModifier ? specialObjects : objects;
       const objectWithParticle = getParticle(random(nounSource).trim(), Math.random() < 0.5 ? "with" : "object");
+      
       const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
       const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
 
-      let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) ? random(withVerbs) : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
-      return [preMod, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
+      let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
+        ? random(withVerbs) 
+        : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
+
+      // [순서] 선행 -> 장소구문 -> 대상 -> 부사 -> 횟수 -> 동사
+      return [preMod, locationPhrase, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
+    // 패턴 D: 간단 동작형
     function generateSimpleCommand() {
       const preMod = maybe(random(preModifiers), 0.25);
       const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
@@ -161,15 +195,17 @@
       return command;
     }
 
-    // --- 메인 컨트롤 로직 ---
+    // --- 메인 컨트롤러 ---
     function generateCommand() {
       const rand = Math.random();
       let cmd = "";
-      if (rand < 0.15) return generateTimeCommand();
-      else if (rand < 0.30) cmd = generateLocationCommand();
-      else if (rand < 0.50) cmd = generateSimpleCommand();
-      else cmd = generateUniversalCommand();
-      return addDuration(cmd, 0.15); 
+      
+      if (rand < 0.15) return generateTimeCommand();          // A형
+      else if (rand < 0.30) cmd = generateLocationCommand();  // B형
+      else if (rand < 0.50) cmd = generateSimpleCommand();    // D형
+      else cmd = generateUniversalCommand();                  // C형
+
+      return addDuration(cmd, 0.15);
     }
 
     function roll() {
