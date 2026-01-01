@@ -175,7 +175,7 @@
     // [신규] 기간제한어 추가 로직 (A형태 제외 모든 형태에서 확률적으로 적용)
     function addDuration(command, chance = 0.3) {
       if (Math.random() < chance) {
-        return command + "\n" + random(durationPhrases);
+        return command + " " + random(durationPhrases);
       }
       return command;
     }
@@ -230,4 +230,5 @@
   </script>
 </body>
 </html>
+
 
