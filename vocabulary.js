@@ -47,7 +47,7 @@ const durationPhrases = [
 ];
 
 // 16. 횟수 접미사
-const countSuffixes = ["이상", "이하"];
+const countSuffixes = ["이상", "이내"];
 
 // 17. 이스터에그 데이터
 const easterEggs = [
