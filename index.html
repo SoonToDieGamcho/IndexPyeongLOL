@@ -142,22 +142,21 @@
       return `${random(timeNouns)}에 ${random(timeVerbs)}`;
     }
 
-    // 패턴 B: 장소형 (수정됨: 선행수식어 추가)
+    // 패턴 B: 장소형
     function generateLocationCommand() {
-      const preMod = maybe(random(preModifiers), 0.25); // [추가] 선행수식어 25%
+      const preMod = maybe(random(preModifiers), 0.25);
       const modifier = maybe(random(locationModifiers), 0.35);
       const loc = random(locationNouns);
       const verb = random(locationVerbs);
       
-      // 선행수식어 + 장소구문 결합
       return [preMod, modifier, getParticle(loc, "location"), verb].filter(Boolean).join(" ");
     }
 
-    // 패턴 C: 범용 상호형 (수정됨: 장소 구문 삽입 추가)
+    // 패턴 C: 범용 상호형
     function generateUniversalCommand() {
-      const preMod = maybe(random(preModifiers), 0.2); // 선행수식어
+      const preMod = maybe(random(preModifiers), 0.2);
       
-      // [추가] 장소 구문 생성 (25% 확률로 대상 앞에 '어디에서'가 붙음)
+      // 장소 구문 생성 (25% 확률)
       let locationPhrase = "";
       if (Math.random() < 0.25) {
         const locMod = maybe(random(locationModifiers), 0.35);
@@ -177,7 +176,6 @@
         ? random(withVerbs) 
         : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
 
-      // [순서] 선행 -> 장소구문 -> 대상 -> 부사 -> 횟수 -> 동사
       return [preMod, locationPhrase, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
@@ -200,10 +198,10 @@
       const rand = Math.random();
       let cmd = "";
       
-      if (rand < 0.15) return generateTimeCommand();          // A형
-      else if (rand < 0.30) cmd = generateLocationCommand();  // B형
-      else if (rand < 0.50) cmd = generateSimpleCommand();    // D형
-      else cmd = generateUniversalCommand();                  // C형
+      if (rand < 0.15) return generateTimeCommand();          
+      else if (rand < 0.30) cmd = generateLocationCommand();  
+      else if (rand < 0.50) cmd = generateSimpleCommand();    
+      else cmd = generateUniversalCommand();                  
 
       return addDuration(cmd, 0.15);
     }
