@@ -90,8 +90,16 @@
 
     // --- 유틸리티 함수 ---
     function maybe(item, chance = 0.7) { return Math.random() < chance ? item : ""; }
-    function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    
+    // 안전한 랜덤 선택
+    function random(arr) { 
+      if (!arr || arr.length === 0) return ""; 
+      return arr[Math.floor(Math.random() * arr.length)]; 
+    }
+    
+    function randomInt(min, max) { 
+      return Math.floor(Math.random() * (max - min + 1)) + min; 
+    }
 
     function generateRandomCount() {
       const r = Math.random();
@@ -111,8 +119,10 @@
     }
 
     function getParticle(word, type = "object") {
+      if (!word) return "";
       word = word.trim();
       if (type === "location") return word + "에서";
+      
       const lastChar = word[word.length - 1];
       const uni = lastChar.charCodeAt(0);
       const isBatchim = (uni - 0xAC00) % 28 !== 0;
@@ -120,6 +130,7 @@
     }
 
     function insertLineBreaks(text, maxLength = 26) {
+      if (!text) return "";
       let result = "";
       let currentLineLength = 0;
       for (let i = 0; i < text.length; i++) {
@@ -137,12 +148,10 @@
 
     // --- 패턴별 생성 로직 ---
 
-    // 패턴 A: 시간형
     function generateTimeCommand() {
       return `${random(timeNouns)}에 ${random(timeVerbs)}`;
     }
 
-    // 패턴 B: 장소형
     function generateLocationCommand() {
       const preMod = maybe(random(preModifiers), 0.25);
       const modifier = maybe(random(locationModifiers), 0.35);
@@ -152,26 +161,41 @@
       return [preMod, modifier, getParticle(loc, "location"), verb].filter(Boolean).join(" ");
     }
 
-    // 패턴 C: 범용 상호형
+    // 패턴 C: 범용 상호형 [수정됨]
     function generateUniversalCommand() {
       const preMod = maybe(random(preModifiers), 0.2);
       
-      // 장소 구문 생성 (25% 확률)
       let locationPhrase = "";
       if (Math.random() < 0.25) {
         const locMod = maybe(random(locationModifiers), 0.35);
         const locNoun = random(locationNouns);
-        locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
+        if (locNoun) {
+           locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
+        }
       }
 
       const omitModifiers = Math.random() < 0.15;
       const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
-      const nounSource = !objectModifier ? specialObjects : objects;
-      const objectWithParticle = getParticle(random(nounSource).trim(), Math.random() < 0.5 ? "with" : "object");
+      
+      // [중요] 대상이 특수 대상인지 일반 대상인지 확인
+      const isSpecial = !objectModifier; 
+      const nounSource = isSpecial ? specialObjects : objects;
+      
+      const rawNoun = random(nounSource);
+      const safeNoun = rawNoun ? rawNoun.trim() : "무언가"; 
+      
+      // [로직 수정] '와/과'(with) 조사는 특수 대상일 때만 50% 확률로 등장
+      let particleType = "object"; // 기본값: 을/를
+      if (isSpecial) {
+          particleType = Math.random() < 0.5 ? "with" : "object";
+      }
+
+      const objectWithParticle = getParticle(safeNoun, particleType);
       
       const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
       const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
 
+      // 조사에 따라 동사 선택 (와/과 -> 상호동사, 을/를 -> 일반/특수동사)
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
         ? random(withVerbs) 
         : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
@@ -179,7 +203,6 @@
       return [preMod, locationPhrase, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
     }
 
-    // 패턴 D: 간단 동작형
     function generateSimpleCommand() {
       const preMod = maybe(random(preModifiers), 0.25);
       const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
@@ -208,6 +231,7 @@
 
     function roll() {
       const isEasterEgg = Math.random() < 0.02;
+
       if (isShowing) {
         paper.classList.remove("show");
         paper.classList.add("hide");
@@ -222,8 +246,13 @@
     function updatePaper(isEasterEgg) {
       if (isEasterEgg) {
         const egg = random(easterEggs);
-        paper.style.background = `url("${egg.image}") no-repeat center/contain`;
-        paper.innerText = egg.text;
+        if (egg) {
+            paper.style.background = `url("${egg.image}") no-repeat center/contain`;
+            paper.innerText = egg.text;
+        } else {
+            paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+            paper.innerText = insertLineBreaks(generateCommand(), 26);
+        }
       } else {
         paper.style.background = 'url("images/paper.png") no-repeat center/contain';
         paper.innerText = insertLineBreaks(generateCommand(), 26);
