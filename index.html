@@ -93,7 +93,7 @@
     const timeNouns = ["해가 떠있는 동안", "가장 빠른 시간 내", "수 분 후", "집에 갈 시간", "해가 질 때", "오전 이후", "오후가 되기 전", "밤", "아침", "점심", "저녁", "오후", "오전", "누구도 일어나지 않은 때", "오늘 하루 동안"];
     const timeVerbs = ["일어난다", "운동한다", "공부한다", "씻는다", "식사한다", "출발한다", "시간을 기록한다", "도망친다", "숨는다", "울부짖는다", "춤춘다", "기도한다", "혼잣말을 한다", "사람을 습격한다", "죄를 짓는다(중할수록 좋다)", "친구와 만난다", "노래한다", "숨쉰다", "조용히 숨쉰다", "모든 행동을 멈춘다", "무작위 신체부위를 상처낸다", "전투한다", "숨는다"];
 
-    // --- [신규] 추가 어휘 데이터 ---
+    // --- 추가 어휘 데이터 ---
     const preModifiers = ["만약 기회가 생긴다면,", "아무도 보지 않을 때,", "피가 흐르는 곳에서,", "가장 어두운 밤에,", "죄의 무게가 느껴질 때,"];
     const simpleVerbs = ["점프한다", "박수친다", "소리지른다", "정지한다", "제자리를 돈다"];
     const durationPhrases = ["기간은 3달.", "기간은 일주일.", "기간은 세 번의 일출까지.", "기간은 보름달이 뜰 때까지.", "기간은 단 한 번의 기회가 주어질 때까지."];
@@ -101,7 +101,6 @@
     const paper = document.getElementById("command");
     let isShowing = false;
 
-    // 이스터에그 데이터
     const easterEggs = [
       { image: 'images/easter_egg_paper1.png', text: 'wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek' },
       { image: 'images/easter_egg_paper2.png', text: '지금 당장 버거를 뿌린다' },
@@ -120,16 +119,25 @@
       return word + (type === "with" ? (isBatchim ? "과" : "와") : (isBatchim ? "을" : "를"));
     }
 
+    // [수정됨] 기존 줄바꿈(\n)을 인식하여 카운트를 초기화하는 똑똑한 줄바꿈 함수
     function insertLineBreaks(text, maxLength = 26) {
       let result = "";
+      let currentLineLength = 0;
       for (let i = 0; i < text.length; i++) {
-        result += text[i];
-        if ((i + 1) % maxLength === 0) result += "\n";
+        const char = text[i];
+        if (char === "\n") {
+          currentLineLength = 0; // 강제 줄바꿈을 만나면 카운트 리셋
+        } else {
+          currentLineLength++;
+        }
+        result += char;
+        if (currentLineLength >= maxLength) {
+          result += "\n";
+          currentLineLength = 0; // maxLength 도달 시 줄바꿈 후 카운트 리셋
+        }
       }
       return result;
     }
-
-    // --- [패턴별 생성 함수] ---
 
     // 패턴 A: 시간형 (기간제한어 제외)
     function generateTimeCommand() {
@@ -144,27 +152,22 @@
       return `${modifier} ${getParticle(loc, "location")} ${verb}`.trim();
     }
 
-    // 패턴 C: 범용형 (선행수식어 추가)
+    // 패턴 C: 범용형
     function generateUniversalCommand() {
-      const preMod = maybe(random(preModifiers), 0.4); // 선행수식어
+      const preMod = maybe(random(preModifiers), 0.4);
       const omitModifiers = Math.random() < 0.15;
       const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.7);
-      
-      const useSpecialObject = !objectModifier;
-      const nounSource = useSpecialObject ? specialObjects : objects;
+      const nounSource = !objectModifier ? specialObjects : objects;
       const objectCore = random(nounSource);
       const fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
-      
       const particleType = Math.random() < 0.5 ? "with" : "object";
       const objectWithParticle = getParticle(fullObject.trim(), particleType);
       const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.65);
-
       let verb = (particleType === "with") ? random(withVerbs) : (adverb ? random(verbs) : random(specialVerbs));
-
       return [preMod, objectWithParticle, adverb, verb].filter(Boolean).join(" ");
     }
 
-    // [신규] 패턴 D: 간단형
+    // 패턴 D: 간단형
     function generateSimpleCommand() {
       const preMod = maybe(random(preModifiers), 0.5);
       const adverb = random(adverbs);
@@ -172,36 +175,26 @@
       return [preMod, adverb, verb].filter(Boolean).join(" ");
     }
 
-    // [신규] 기간제한어 추가 로직 (A형태 제외 모든 형태에서 확률적으로 적용)
+    // [수정됨] 기간제한어 추가 시 줄바꿈(\n) 다시 적용
     function addDuration(command, chance = 0.3) {
       if (Math.random() < chance) {
-        return command + " " + random(durationPhrases);
+        return command + "\n" + random(durationPhrases);
       }
       return command;
     }
 
-    // --- 메인 생성 로직 ---
     function generateCommand() {
       const rand = Math.random();
       let cmd = "";
-
-      if (rand < 0.15) {
-        return generateTimeCommand(); // 패턴 A (15%)
-      } else if (rand < 0.30) {
-        cmd = generateLocationCommand(); // 패턴 B (15%)
-      } else if (rand < 0.50) {
-        cmd = generateSimpleCommand();   // 패턴 D (20%)
-      } else {
-        cmd = generateUniversalCommand(); // 패턴 C (50%)
-      }
-
-      // A가 아닌 경우 확률적으로 기간제한어 추가
+      if (rand < 0.15) return generateTimeCommand();
+      else if (rand < 0.30) cmd = generateLocationCommand();
+      else if (rand < 0.50) cmd = generateSimpleCommand();
+      else cmd = generateUniversalCommand();
       return addDuration(cmd, 0.3); 
     }
 
     function roll() {
       const isEasterEgg = Math.random() < 0.05;
-
       if (isShowing) {
         paper.classList.remove("show");
         paper.classList.add("hide");
@@ -224,11 +217,10 @@
         paper.innerText = egg.text;
       } else {
         paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+        // 똑똑해진 insertLineBreaks가 줄바꿈을 조절합니다.
         paper.innerText = insertLineBreaks(generateCommand(), 26);
       }
     }
   </script>
 </body>
 </html>
-
-
