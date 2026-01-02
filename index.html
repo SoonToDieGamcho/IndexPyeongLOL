@@ -103,18 +103,19 @@
     function generateRandomCount() {
       const r = Math.random();
       let num;
-      if (r < 0.50) num = randomInt(1, 10);
-      else if (r < 0.80) num = randomInt(11, 100);
-      else if (r < 0.90) num = randomInt(101, 1000);
-      else if (r < 0.97) num = randomInt(1001, 10000);
-      else num = randomInt(10001, 10000000);
+      // [수정] 1~10번 확률 70%로 상향
+      if (r < 0.70) num = randomInt(1, 10);
+      else if (r < 0.90) num = randomInt(11, 100);     // 20%
+      else if (r < 0.95) num = randomInt(101, 1000);   // 5%
+      else if (r < 0.98) num = randomInt(1001, 10000); // 3%
+      else num = randomInt(10001, 10000000);           // 2%
       return num.toLocaleString() + "번";
     }
 
     function getFrequencyPhrase() {
       let phrase = generateRandomCount();
-      // 접미사 40%
-      if (Math.random() < 0.4) { phrase += " " + random(countSuffixes); }
+      // 접미사 30%
+      if (Math.random() < 0.3) { phrase += " " + random(countSuffixes); }
       return phrase;
     }
 
@@ -153,39 +154,37 @@
     }
 
     function generateLocationCommand() {
-      // 선행수식어 43%
-      const preMod = maybe(random(preModifiers), 0.43);
-      // 장소수식어 45%
-      const modifier = maybe(random(locationModifiers), 0.45);
+      // 선행 33%
+      const preMod = maybe(random(preModifiers), 0.33);
+      // 장소수식 35%
+      const modifier = maybe(random(locationModifiers), 0.35);
       const loc = random(locationNouns);
       const verb = random(locationVerbs);
       
       return [preMod, modifier, getParticle(loc, "location"), verb].filter(Boolean).join(" ");
     }
 
-    // 패턴 C: 범용 상호형
     function generateUniversalCommand() {
-      // 선행수식어 38%
-      const preMod = maybe(random(preModifiers), 0.38);
+      // 선행 28%
+      const preMod = maybe(random(preModifiers), 0.28);
       
       let locationPhrase = "";
-      // 장소구문 35%
-      if (Math.random() < 0.35) {
-        const locMod = maybe(random(locationModifiers), 0.45);
+      // 장소구문 25%
+      if (Math.random() < 0.25) {
+        // 내부수식 35%
+        const locMod = maybe(random(locationModifiers), 0.35);
         const locNoun = random(locationNouns);
         if (locNoun) {
            locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
         }
       }
 
-      // 수식어 생략 25%
-      const omitModifiers = Math.random() < 0.25;
-      // 대상 수식어 45%
-      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.45);
+      // 수식어 생략 15%
+      const omitModifiers = Math.random() < 0.15;
+      // 대상 수식어 35%
+      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
       
-      // [로직 수정됨]
-      // 1. 수식어가 있으면 -> 무조건 일반 사물 (objects)
-      // 2. 수식어가 없으면 -> 특수 대상 60%, 일반 사물 40% (섞어서 사용)
+      // 대상 선정 로직 (수식어 유무 분기)
       let nounSource;
       if (objectModifier) {
          nounSource = objects; 
@@ -196,15 +195,15 @@
       const rawNoun = random(nounSource);
       const safeNoun = rawNoun ? rawNoun.trim() : "무언가"; 
       
-      // 조사 랜덤 (50:50)
+      // 조사 '와/과' 50% 확률 허용
       const particleType = Math.random() < 0.5 ? "with" : "object";
 
       const objectWithParticle = getParticle(safeNoun, particleType);
       
-      // 횟수 25%
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.25);
-      // 부사 45%
-      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.45);
+      // 횟수 15%
+      const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
+      // 부사 35%
+      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
 
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
         ? random(withVerbs) 
@@ -214,10 +213,10 @@
     }
 
     function generateSimpleCommand() {
-      // 선행수식어 43%
-      const preMod = maybe(random(preModifiers), 0.43);
-      // 횟수 40%
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.4);
+      // 선행 33%
+      const preMod = maybe(random(preModifiers), 0.33);
+      // 횟수 30%
+      const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
       const adverb = random(adverbs);
       const verb = random(simpleVerbs);
       return [preMod, adverb, freqPhrase, verb].filter(Boolean).join(" ");
@@ -238,12 +237,12 @@
       else if (rand < 0.50) cmd = generateSimpleCommand();    
       else cmd = generateUniversalCommand();                  
 
-      // 기간제한어 35%
-      return addDuration(cmd, 0.35);
+      // 기간제한어 25%
+      return addDuration(cmd, 0.25);
     }
 
     function roll() {
-      // 이스터에그 4%
+      // [수정] 이스터에그 4%
       const isEasterEgg = Math.random() < 0.04;
 
       if (isShowing) {
