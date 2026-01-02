@@ -103,7 +103,7 @@
     function generateRandomCount() {
       const r = Math.random();
       let num;
-      // [수정] 1~10번 확률 70%로 상향
+      // 1~10번 확률 70% 유지
       if (r < 0.70) num = randomInt(1, 10);
       else if (r < 0.90) num = randomInt(11, 100);     // 20%
       else if (r < 0.95) num = randomInt(101, 1000);   // 5%
@@ -195,15 +195,15 @@
       const rawNoun = random(nounSource);
       const safeNoun = rawNoun ? rawNoun.trim() : "무언가"; 
       
-      // 조사 '와/과' 50% 확률 허용
-      const particleType = Math.random() < 0.5 ? "with" : "object";
+      // [수정됨] 조사 결정 로직: '와/과'(with) 35%, '을/를'(object) 65%
+      const particleType = Math.random() < 0.35 ? "with" : "object";
 
       const objectWithParticle = getParticle(safeNoun, particleType);
       
       // 횟수 15%
       const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
-      // 부사 35%
-      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
+      // [수정됨] 부사 확률 35% -> 40%
+      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.40);
 
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
         ? random(withVerbs) 
@@ -242,7 +242,7 @@
     }
 
     function roll() {
-      // [수정] 이스터에그 4%
+      // 이스터에그 4%
       const isEasterEgg = Math.random() < 0.04;
 
       if (isShowing) {
