@@ -113,7 +113,8 @@
 
     function getFrequencyPhrase() {
       let phrase = generateRandomCount();
-      if (Math.random() < 0.3) { phrase += " " + random(countSuffixes); }
+      // 접미사 붙을 확률 40% 유지
+      if (Math.random() < 0.4) { phrase += " " + random(countSuffixes); }
       return phrase;
     }
 
@@ -152,9 +153,10 @@
     }
 
     function generateLocationCommand() {
-      // 선행수식어 확률 33%
-      const preMod = maybe(random(preModifiers), 0.33);
-      const modifier = maybe(random(locationModifiers), 0.35);
+      // 선행수식어 43%
+      const preMod = maybe(random(preModifiers), 0.43);
+      // 장소수식어 45%
+      const modifier = maybe(random(locationModifiers), 0.45);
       const loc = random(locationNouns);
       const verb = random(locationVerbs);
       
@@ -162,35 +164,39 @@
     }
 
     function generateUniversalCommand() {
-      // 선행수식어 확률 28%
-      const preMod = maybe(random(preModifiers), 0.28);
+      // 선행수식어 38%
+      const preMod = maybe(random(preModifiers), 0.38);
       
       let locationPhrase = "";
-      if (Math.random() < 0.25) {
-        const locMod = maybe(random(locationModifiers), 0.35);
+      // 장소구문 삽입 35%
+      if (Math.random() < 0.35) {
+        // 내부 수식어 45%
+        const locMod = maybe(random(locationModifiers), 0.45);
         const locNoun = random(locationNouns);
         if (locNoun) {
            locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
         }
       }
 
-      const omitModifiers = Math.random() < 0.15;
-      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
+      // 수식어 생략(CleanMode) 25%
+      const omitModifiers = Math.random() < 0.25;
+      // 대상 수식어 45%
+      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.45);
       
-      // 특수 대상 여부는 수식어가 없으면(clean mode) true
       const isSpecial = !objectModifier; 
       const nounSource = isSpecial ? specialObjects : objects;
       
       const rawNoun = random(nounSource);
       const safeNoun = rawNoun ? rawNoun.trim() : "무언가"; 
       
-      // [롤백됨] 대상 종류에 상관없이 50% 확률로 '와/과' 등장
       const particleType = Math.random() < 0.5 ? "with" : "object";
 
       const objectWithParticle = getParticle(safeNoun, particleType);
       
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
-      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.35);
+      // 횟수 등장 25%
+      const freqPhrase = maybe(getFrequencyPhrase(), 0.25);
+      // 부사 45%
+      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.45);
 
       let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
         ? random(withVerbs) 
@@ -200,9 +206,10 @@
     }
 
     function generateSimpleCommand() {
-      // 선행수식어 확률 33%
-      const preMod = maybe(random(preModifiers), 0.33);
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
+      // 선행수식어 43%
+      const preMod = maybe(random(preModifiers), 0.43);
+      // 횟수 40%
+      const freqPhrase = maybe(getFrequencyPhrase(), 0.4);
       const adverb = random(adverbs);
       const verb = random(simpleVerbs);
       return [preMod, adverb, freqPhrase, verb].filter(Boolean).join(" ");
@@ -223,12 +230,13 @@
       else if (rand < 0.50) cmd = generateSimpleCommand();    
       else cmd = generateUniversalCommand();                  
 
-      // 기간제한어 확률 25%
-      return addDuration(cmd, 0.25);
+      // 기간제한어 35%
+      return addDuration(cmd, 0.35);
     }
 
     function roll() {
-      const isEasterEgg = Math.random() < 0.02;
+      // [수정] 이스터에그 4% 적용
+      const isEasterEgg = Math.random() < 0.04;
 
       if (isShowing) {
         paper.classList.remove("show");
