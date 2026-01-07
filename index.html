@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>지령 생성기</title>
-  
-  <link rel="icon" href="images/fv.png" type="image/png">
-  
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -22,7 +19,7 @@
       overflow: hidden;
     }
 
-    .wrapper {
+        .wrapper {
       width: 800px;
       height: 600px;
       position: relative;
@@ -37,7 +34,7 @@
       background: url("images/paper.png") no-repeat center/contain;
       width: 410px;
       height: 100px;
-      font-size: 12px;
+      font-size: 12px; /* px 단위 */
       font-weight: bold;
       text-align: center;
       color: #000;
@@ -48,8 +45,6 @@
       transform: translateY(-300px);
       opacity: 0;
       transition: transform 0.8s ease-out, opacity 0.8s ease-out;
-      padding: 20px;
-      box-sizing: border-box;
     }
 
     .paper.show {
@@ -81,196 +76,154 @@
     <div class="paper" id="command"></div>
     <button class="button" onclick="roll()"></button>
   </div>
-
-  <script src="vocabulary.js"></script>
+</body>
 
   <script>
-    const paper = document.getElementById("command");
-    let isShowing = false;
+    const objects = ["달빛", "바람", "종이비행기", "돌멩이", "바나나", "양말", "심장", "손", "팔", "신체 부위", "집", "머리카락", "시체", "필기도구", "실", "거실", "친구", "무기", "혈연 가족", "이동 수단", "해결사", "자판기", "광기", "감정", "죽음", "주사기", "나무", "자동차", "바닥재", "음식", "종이", "지령", "스스로", "섕크 협회", "부랑자", "눈물", "그림", "피", "혈액", "쇠붙이", "기계", "옷", "칼", "못", "무작위 신체부위", "전투원"];
+    const specialObjects = ["가장 가까운 사람", "가족", "이웃 사람(옆집이면 더욱 좋다)", "친구", "연인", "이웃 사람", "무작위 사람", "전자기기", "반려동물", "자신", "자기 자신", "엄지", "손가락 조직원", "조직원", "4급 이상의 해결사", "지금 가장 가까이 있는 물건", "지령을 전한 전령", "도시", "약지", "중지", "소지", "검지", "무작위 신체부위"];
+    const locationNouns = ["화장실", "지하실", "옥상", "교실", "침대 위", "장롱 안", "현관 앞", "학교", "무작위로 정한 곳", "해결사 사무소", "집", "적의 집", "친구의 집", "괴물의 등", "행복한 곳", "고통스러운 길", "음식점", "어두운 골목", "낮은 곳", "최대한 높은 곳", "워프 열차"];
 
-    // --- 유틸리티 함수 ---
-    function maybe(item, chance = 0.7) { return Math.random() < chance ? item : ""; }
-    
-    function random(arr) { 
-      if (!arr || arr.length === 0) return ""; 
-      return arr[Math.floor(Math.random() * arr.length)]; 
+    const objectModifiers = ["빛나는", "거대한", "평범하지 않은", "축축한", "일어나서 처음 본", "지금 당장", "누구보다 빠르게", "사랑하는", "독을 주입한", "가장 오래된", "푸른", "븕은", "직접 만든", "친구의", "자신의", "만나는 모든", "모든", "새로운", "익숙한", "30분 후에", "20초 후에", "알맞은 시간이라 느껴질 떄", "가치없는", "만나고 싶지 않던", "무작위의", "날카롭게 갈아낸", "모서리가 없는"];
+    const adverbs = ["조용히", "힘껏", "가볍게", "천천히", "몰래", "(싱싱하면 더욱 좋다)", "(살아 있는 채여야 한다)", "하루의 반 동안", "30분 이상", "10분 이상", "2분 이상", "상상하기 어려운 방법으로", "완벽하게", "고통을 느끼며", "울지 않으면서", "20번 이상", "의연하게", "34번 이상", "5번이 넘지 않도록"];
+
+    const verbs = ["삼킨다", "던진다", "태운다", "숨긴다", "깨문다", "부순다", "죽인다", "만든다", "은폐한다", "다량 빼낸다", "손가락으로 찌른다", "50%이상 제거한다"];
+    const specialVerbs = ["옆에 두고 잔다", "눈에 가까이 둔다", "침대 밑에 숨긴다", "요리해 먹는다", "눈치채지 못하게 숨긴다", "여럿에게 나눠 준다", "위로한다", "미디움 웰던으로 요리해 먹는다", "모두 외워 암독한다", "상처낸다"];
+    const withVerbs = ["사랑을 나눈다", "대화를 나눈다", "함께 잔다", "같이 식사한다", "마주 본다", "행복한 시간을 보낸다", "결투를 진행해 이긴다", "음독자살을 시도한다", "적대한다", "악수한다"];
+    const locationVerbs = ["도망친다", "숨는다", "울부짖는다", "춤춘다", "기도한다", "혼잣말을 한다", "사람을 습격한다", "죄를 짓는다(중할수록 좋다)", "친구와 만난다", "노래한다", "숨쉰다"];
+
+    // 시간지시형용 시간명사, 동사
+    const timeNouns = ["해가 떠있는 동안", "가장 빠른 시간 내", "수 분 후", "집에 갈 시간", "해가 질 때", "오전 이후", "오후가 되기 전", "밤", "아침", "점심", "저녁", "오후", "오전", "누구도 일어나지 않은 때", "오늘 하루 동안"];
+    const timeVerbs = ["일어난다", "운동한다", "공부한다", "씻는다", "식사한다", "출발한다", "시간을 기록한다", "도망친다", "숨는다", "울부짖는다", "춤춘다", "기도한다", "혼잣말을 한다", "사람을 습격한다", "죄를 짓는다(중할수록 좋다)", "친구와 만난다", "노래한다", "숨쉰다", "조용히 숨쉰다", "모든 행동을 멈춘다", "무작위 신체부위를 상처낸다", "전투한다", "숨는다"];
+
+      const paper = document.getElementById("command");
+  let isShowing = false;
+
+  // 이스터에그 데이터 배열
+  const easterEggs = [
+    {
+      image: 'images/easter_egg_paper1.png',
+      text: 'wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek wlfuddmf tngodgksek'
+    },
+    {
+      image: 'images/easter_egg_paper2.png',
+      text: '지금 당장 버거를 뿌린다'
+    },
+    {
+      image: 'images/easter_egg_paper3.png',
+      text: '지령을 수행하지 않은 자를 찾아 처벌한다'
     }
-    
-    function randomInt(min, max) { 
-      return Math.floor(Math.random() * (max - min + 1)) + min; 
+  ];
+
+  function maybe(item, chance = 0.7) {
+    return Math.random() < chance ? item : "";
+  }
+
+  function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function getParticle(word, type = "object") {
+    word = word.trim();
+    if (type === "location") return word + "에서";
+    const lastChar = word[word.length - 1];
+    const uni = lastChar.charCodeAt(0);
+    const isBatchim = (uni - 0xAC00) % 28 !== 0;
+    return word + (type === "with" ? (isBatchim ? "과" : "와") : (isBatchim ? "을" : "를"));
+  }
+
+  function insertLineBreaks(text, maxLength = 26) {
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+      result += text[i];
+      if ((i + 1) % maxLength === 0) result += "\n";
+    }
+    return result;
+  }
+
+  function generateTimeCommand() {
+    const time = random(timeNouns);
+    const verb = random(timeVerbs);
+    return `${time}에 ${verb}`;
+  }
+
+  function generateNormalCommand() {
+    const omitModifiers = Math.random() < 0.15;
+    const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.7);
+
+    const isLocation = Math.random() < 0.23;
+    let objectCore, fullObject, particleType;
+
+    if (isLocation) {
+      objectCore = random(locationNouns);
+      fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
+      particleType = "location";
+    } else {
+      const useSpecialObject = !objectModifier;
+      const nounSource = useSpecialObject ? specialObjects : objects;
+      objectCore = random(nounSource);
+      fullObject = objectModifier ? `${objectModifier} ${objectCore}` : objectCore;
+      particleType = Math.random() < 0.5 ? "with" : "object";
     }
 
-    function generateRandomCount() {
-      const r = Math.random();
-      let num;
-      // 1~10번 확률 70% 유지
-      if (r < 0.70) num = randomInt(1, 10);
-      else if (r < 0.90) num = randomInt(11, 100);     // 20%
-      else if (r < 0.95) num = randomInt(101, 1000);   // 5%
-      else if (r < 0.98) num = randomInt(1001, 10000); // 3%
-      else num = randomInt(10001, 10000000);           // 2%
-      return num.toLocaleString() + "번";
+    const objectWithParticle = getParticle(fullObject.trim(), particleType);
+    const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.65);
+
+    let verb = "";
+    if (particleType === "location") {
+      verb = random(locationVerbs);
+    } else if (particleType === "with") {
+      verb = random(withVerbs);
+    } else {
+      verb = adverb ? random(verbs) : random(specialVerbs);
     }
 
-    function getFrequencyPhrase() {
-      let phrase = generateRandomCount();
-      // 접미사 30%
-      if (Math.random() < 0.3) { phrase += " " + random(countSuffixes); }
-      return phrase;
-    }
+    const parts = [objectWithParticle];
+    if (adverb) parts.push(adverb);
+    if (verb) parts.push(verb);
 
-    function getParticle(word, type = "object") {
-      if (!word) return "";
-      word = word.trim();
-      if (type === "location") return word + "에서";
-      
-      const lastChar = word[word.length - 1];
-      const uni = lastChar.charCodeAt(0);
-      const isBatchim = (uni - 0xAC00) % 28 !== 0;
-      return word + (type === "with" ? (isBatchim ? "과" : "와") : (isBatchim ? "을" : "를"));
-    }
+    return parts.join(" ");
+  }
 
-    function insertLineBreaks(text, maxLength = 26) {
-      if (!text) return "";
-      let result = "";
-      let currentLineLength = 0;
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char === "\n") { currentLineLength = 0; } 
-        else { currentLineLength++; }
-        result += char;
-        if (currentLineLength >= maxLength) {
-          result += "\n";
-          currentLineLength = 0;
+  function generateCommand() {
+    if (Math.random() < 0.15) {
+      return generateTimeCommand();
+    }
+    return generateNormalCommand();
+  }
+
+  function roll() {
+    const isEasterEgg = Math.random() < 0.09; // 9% 확률
+
+    if (isShowing) {
+      paper.classList.remove("show");
+      paper.classList.add("hide");
+      setTimeout(() => {
+        if (isEasterEgg) {
+          // 이스터에그 랜덤 선택
+          const egg = random(easterEggs);
+          paper.style.background = `url("${egg.image}") no-repeat center/contain`;
+          paper.innerText = egg.text;
+        } else {
+          // 일반 명령어
+          paper.style.background = 'url("images/paper.png") no-repeat center/contain';
+          paper.innerText = insertLineBreaks(generateCommand(), 26);
         }
-      }
-      return result;
-    }
-
-    // --- 패턴별 생성 로직 ---
-
-    function generateTimeCommand() {
-      return `${random(timeNouns)}에 ${random(timeVerbs)}`;
-    }
-
-    function generateLocationCommand() {
-      // 선행 33%
-      const preMod = maybe(random(preModifiers), 0.33);
-      // 장소수식 35%
-      const modifier = maybe(random(locationModifiers), 0.35);
-      const loc = random(locationNouns);
-      const verb = random(locationVerbs);
-      
-      return [preMod, modifier, getParticle(loc, "location"), verb].filter(Boolean).join(" ");
-    }
-
-    function generateUniversalCommand() {
-      // 선행 28%
-      const preMod = maybe(random(preModifiers), 0.28);
-      
-      let locationPhrase = "";
-      // 장소구문 25%
-      if (Math.random() < 0.25) {
-        // 내부수식 35%
-        const locMod = maybe(random(locationModifiers), 0.35);
-        const locNoun = random(locationNouns);
-        if (locNoun) {
-           locationPhrase = `${locMod} ${getParticle(locNoun, "location")}`.trim();
-        }
-      }
-
-      // 수식어 생략 15%
-      const omitModifiers = Math.random() < 0.15;
-      // 대상 수식어 35%
-      const objectModifier = omitModifiers ? "" : maybe(random(objectModifiers), 0.35);
-      
-      // 대상 선정 로직 (수식어 유무 분기)
-      let nounSource;
-      if (objectModifier) {
-         nounSource = objects; 
-      } else {
-         nounSource = Math.random() < 0.6 ? specialObjects : objects;
-      }
-      
-      const rawNoun = random(nounSource);
-      const safeNoun = rawNoun ? rawNoun.trim() : "무언가"; 
-      
-      // [수정됨] 조사 결정 로직: '와/과'(with) 35%, '을/를'(object) 65%
-      const particleType = Math.random() < 0.35 ? "with" : "object";
-
-      const objectWithParticle = getParticle(safeNoun, particleType);
-      
-      // 횟수 15%
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.15);
-      // [수정됨] 부사 확률 35% -> 40%
-      const adverb = omitModifiers ? "" : maybe(random(adverbs), 0.40);
-
-      let verb = (objectWithParticle.endsWith("과") || objectWithParticle.endsWith("와")) 
-        ? random(withVerbs) 
-        : (adverb || freqPhrase ? random(verbs) : random(specialVerbs));
-
-      return [preMod, locationPhrase, objectWithParticle, adverb, freqPhrase, verb].filter(Boolean).join(" ");
-    }
-
-    function generateSimpleCommand() {
-      // 선행 33%
-      const preMod = maybe(random(preModifiers), 0.33);
-      // 횟수 30%
-      const freqPhrase = maybe(getFrequencyPhrase(), 0.3);
-      const adverb = random(adverbs);
-      const verb = random(simpleVerbs);
-      return [preMod, adverb, freqPhrase, verb].filter(Boolean).join(" ");
-    }
-
-    function addDuration(command, chance) {
-      if (Math.random() < chance) { return command + "\n" + random(durationPhrases); }
-      return command;
-    }
-
-    // --- 메인 컨트롤러 ---
-    function generateCommand() {
-      const rand = Math.random();
-      let cmd = "";
-      
-      if (rand < 0.15) return generateTimeCommand();          
-      else if (rand < 0.30) cmd = generateLocationCommand();  
-      else if (rand < 0.50) cmd = generateSimpleCommand();    
-      else cmd = generateUniversalCommand();                  
-
-      // 기간제한어 25%
-      return addDuration(cmd, 0.25);
-    }
-
-    function roll() {
-      // 이스터에그 4%
-      const isEasterEgg = Math.random() < 0.04;
-
-      if (isShowing) {
-        paper.classList.remove("show");
-        paper.classList.add("hide");
-        setTimeout(() => { updatePaper(isEasterEgg); paper.classList.remove("hide"); paper.classList.add("show"); }, 800);
-      } else {
-        updatePaper(isEasterEgg);
+        paper.classList.remove("hide");
         paper.classList.add("show");
-        isShowing = true;
-      }
-    }
-
-    function updatePaper(isEasterEgg) {
+      }, 800);
+    } else {
       if (isEasterEgg) {
         const egg = random(easterEggs);
-        if (egg) {
-            paper.style.background = `url("${egg.image}") no-repeat center/contain`;
-            paper.innerText = egg.text;
-        } else {
-            paper.style.background = 'url("images/paper.png") no-repeat center/contain';
-            paper.innerText = insertLineBreaks(generateCommand(), 26);
-        }
+        paper.style.background = `url("${egg.image}") no-repeat center/contain`;
+        paper.innerText = egg.text;
       } else {
         paper.style.background = 'url("images/paper.png") no-repeat center/contain';
         paper.innerText = insertLineBreaks(generateCommand(), 26);
       }
+      paper.classList.add("show");
+      isShowing = true;
     }
-  </script>
+  }
+</script>
 </body>
 </html>
